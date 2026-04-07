@@ -1,4 +1,10 @@
-from PIL import Image
+try:
+    from PIL import Image
+    PIL_AVAILABLE = True
+except ImportError:
+    PIL_AVAILABLE = False
+    print("Warning: PIL not available, image analysis disabled")
+
 import numpy as np
 from typing import Tuple, List
 import csv
@@ -129,6 +135,10 @@ class SimpleImageAnalyzer:
             
             # STEP 3: Fallback to color-based analysis
             print("📊 Running color-based analysis as fallback...")
+            if not PIL_AVAILABLE:
+                print("⚠️  PIL not available, using basic file analysis")
+                return self._basic_file_analysis(image_path)
+            
             image = Image.open(image_path)
             
             # Convert to RGB if needed
@@ -151,6 +161,20 @@ class SimpleImageAnalyzer:
             import traceback
             traceback.print_exc()
             return "other", 0.0, []
+
+    def _basic_file_analysis(self, image_path: str) -> Tuple[str, float, List[str]]:
+        """Basic analysis when PIL is not available - just check filename"""
+        filename = os.path.basename(image_path).lower()
+        
+        # Simple keyword matching based on filename
+        if 'road' in filename or 'pothole' in filename:
+            return "road_damage", 0.6, ["filename_contains_road"]
+        elif 'water' in filename or 'leak' in filename:
+            return "water_leak", 0.6, ["filename_contains_water"]
+        elif 'garbage' in filename or 'trash' in filename:
+            return "garbage", 0.6, ["filename_contains_garbage"]
+        else:
+            return "other", 0.3, ["basic_filename_analysis"]
 
     
     def _extract_color_metrics(self, img_array: np.ndarray) -> dict:
