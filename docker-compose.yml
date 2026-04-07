@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  # Backend API
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: localreporter-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=sqlite:///./problems.db
+      - DEBUG=False
+    volumes:
+      - ./backend:/app
+      - ./uploads:/app/uploads
+    command: python run.py
+    restart: unless-stopped
+    networks:
+      - localreporter-network
+
+  # Frontend (React)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: localreporter-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+      - REACT_APP_ENV=development
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - localreporter-network
+    stdin_open: true
+    tty: true
+
+  # Optional: PostgreSQL Database (for production)
+  # postgres:
+  #   image: postgres:13
+  #   container_name: localreporter-postgres
+  #   environment:
+  #     POSTGRES_USER: localreporter
+  #     POSTGRES_PASSWORD: secure_password
+  #     POSTGRES_DB: localreporter
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   ports:
+  #     - "5432:5432"
+  #   networks:
+  #     - localreporter-network
+
+networks:
+  localreporter-network:
+    driver: bridge
+
+# volumes:
+#   postgres_data:
+
+# To run:
+# docker-compose up
+# 
+# Backend: http://localhost:8000
+# Frontend: http://localhost:3000
+# API Docs: http://localhost:8000/docs
