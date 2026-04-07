@@ -12,8 +12,6 @@ torchvision==0.26.0
 yolov5==7.0.13
 pydantic==2.5.0
 python-dotenv==1.0.0
-cors==1.0.1
-fastapi-cors==0.0.6
 bcrypt==4.1.1
 pyjwt==2.9.0
 httpx==0.25.0
