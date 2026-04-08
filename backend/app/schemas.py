@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from datetime import datetime
 
 
@@ -119,14 +119,14 @@ class AnalyticsResponse(BaseModel):
     low_issues: int
     resolved_issues: int
     pending_issues: int
-    issue_types: dict
-    priority_distribution: dict
+    issue_types: Dict[str, int]
+    priority_distribution: Dict[str, int]
 
 
 class DashboardResponse(BaseModel):
     total_issues: int
-    issues_by_type: dict
-    issues_by_priority: dict
-    issues_by_status: dict
+    issues_by_type: Dict[str, int]
+    issues_by_priority: Dict[str, int]
+    issues_by_status: Dict[str, int]
     recent_issues: List[IssueList]
-    top_locations: list
+    top_locations: List[Dict[str, Any]]
