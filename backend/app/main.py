@@ -5,7 +5,7 @@ import os
 
 from .database import Base, engine, SessionLocal
 from .models import *
-from .routes import issues, auth
+from .routes import issues, analytics, auth
 from .services import AIIssueDetector
 from .services.auth import hash_password
 
@@ -61,7 +61,7 @@ app.add_middleware(
 # Include routers
 app.include_router(auth.router)
 app.include_router(issues.router)
-# app.include_router(analytics.router)
+app.include_router(analytics.router)
 
 # Mount static files for uploads
 os.makedirs("uploads", exist_ok=True)
