@@ -31,7 +31,7 @@ def get_detector():
     return detector
 
 
-@router.post("/upload", response_model=IssueDetailResponse)
+@router.post("/upload")
 async def upload_issue(
     file: UploadFile = File(...),
     title: str = Form(...),
@@ -161,7 +161,7 @@ async def upload_issue(
         raise HTTPException(status_code=500, detail=f"Error processing issue: {str(e)}")
 
 
-@router.get("/all", response_model=List[IssueList])
+@router.get("/all")
 async def get_all_issues(
     db: Session = Depends(get_db),
     priority: Optional[str] = Query(None),
@@ -205,7 +205,7 @@ async def get_all_issues(
     ]
 
 
-@router.get("/{issue_id}", response_model=IssueDetailResponse)
+@router.get("/{issue_id}")
 async def get_issue_detail(issue_id: int, db: Session = Depends(get_db)):
     """Get detailed information about a specific issue"""
     issue = db.query(Issue).filter(Issue.id == issue_id).first()
@@ -443,7 +443,7 @@ async def get_issues_by_type(issue_type: str, db: Session = Depends(get_db)):
     ]
 
 
-@router.get("/resolved/list", response_model=List[IssueList])
+@router.get("/resolved/list")
 async def get_resolved_issues(
     db: Session = Depends(get_db),
     skip: int = Query(0),

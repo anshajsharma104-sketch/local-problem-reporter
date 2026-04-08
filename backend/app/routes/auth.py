@@ -43,7 +43,7 @@ class UserResponse(BaseModel):
         orm_mode = True
 
 
-@router.post("/register", response_model=TokenResponse)
+@router.post("/register")
 async def register(user_data: UserRegister, db: Session = Depends(get_db)):
     """Register a new user"""
     
@@ -85,7 +85,7 @@ async def register(user_data: UserRegister, db: Session = Depends(get_db)):
     }
 
 
-@router.post("/login", response_model=TokenResponse)
+@router.post("/login")
 async def login(credentials: UserLogin, db: Session = Depends(get_db)):
     """Login a user"""
     
@@ -112,7 +112,7 @@ async def login(credentials: UserLogin, db: Session = Depends(get_db)):
     }
 
 
-@router.get("/me", response_model=UserResponse)
+@router.get("/me")
 async def get_current_user(token: str = Query(...), db: Session = Depends(get_db)):
     """Get current authenticated user"""
     
