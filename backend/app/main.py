@@ -5,7 +5,7 @@ import os
 
 from .database import Base, engine, SessionLocal
 from .models import *
-from .routes import issues, analytics, auth
+from .routes import issues, auth
 from .services import AIIssueDetector
 from .services.auth import hash_password
 
@@ -13,14 +13,18 @@ from .services.auth import hash_password
 cors_origins = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
 cors_origins = [origin.strip() for origin in cors_origins]
 
-# Create tables
-Base.metadata.create_all(bind=engine)
+# Create tables (with error handling for production)
+try:
+    Base.metadata.create_all(bind=engine)
+    print("✓ Database tables created successfully")
+except Exception as e:
+    print(f"⚠️  Could not create database tables on startup: {str(e)}")
+    print("Tables will be created automatically when first accessed")
 
-# Create sample authority user on startup
+# Create sample authority user on startup (with error handling)
 def create_sample_authority():
-    db = SessionLocal()
     try:
-        # Check if admin already exists
+        db = SessionLocal()
         try:
             admin = db.query(User).filter(User.email == "admin@authority.com").first()
             if not admin:
@@ -35,11 +39,15 @@ def create_sample_authority():
                 db.add(admin_user)
                 db.commit()
                 print("✓ Sample authority user created: admin@authority.com / admin123")
+            else:
+                print("✓ Sample authority user already exists")
         except Exception as e:
-            print(f"Note: Could not create sample authority user on startup: {str(e)}")
+            print(f"⚠️  Could not create sample authority user on startup: {str(e)}")
             db.rollback()
-    finally:
-        db.close()
+        finally:
+            db.close()
+    except Exception as e:
+        print(f"⚠️  Database connection error during startup: {str(e)}")
 
 create_sample_authority()
 
@@ -61,7 +69,7 @@ app.add_middleware(
 # Include routers
 app.include_router(auth.router)
 app.include_router(issues.router)
-app.include_router(analytics.router)
+# app.include_router(analytics.router)
 
 # Mount static files for uploads
 os.makedirs("uploads", exist_ok=True)
