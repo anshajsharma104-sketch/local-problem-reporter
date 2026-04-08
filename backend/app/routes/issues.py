@@ -16,8 +16,19 @@ from ..services.geocoding import GeocodingService
 
 router = APIRouter(prefix="/api/issues", tags=["issues"])
 
-# Initialize AI detector (global)
-detector = AIIssueDetector()
+# Initialize AI detector (lazy initialization)
+detector = None
+
+def get_detector():
+    global detector
+    if detector is None:
+        try:
+            from ..services import AIIssueDetector
+            detector = AIIssueDetector()
+        except Exception as e:
+            print(f"Warning: Could not initialize AI detector: {e}")
+            detector = None
+    return detector
 
 
 @router.post("/upload", response_model=IssueDetailResponse)
@@ -57,11 +68,13 @@ async def upload_issue(
         
         if issue_type == "auto":
             # Try AI detection for auto-detect
-            detected_issue_type, confidence, detected_objects = detector.detect_issue_type(file_path)
-            if confidence > 0.3:
-                # AI found something - use it
-                issue_type = detected_issue_type
-                priority_type_for_scoring = detected_issue_type
+            detector = get_detector()
+            if detector:
+                detected_issue_type, confidence, detected_objects = detector.detect_issue_type(file_path)
+                if confidence > 0.3:
+                    # AI found something - use it
+                    issue_type = detected_issue_type
+                    priority_type_for_scoring = detected_issue_type
                 print(f"✓ AI detected: {issue_type} (confidence: {confidence:.2f})")
             else:
                 # AI has low confidence - keep "other" but report actual AI confidence
@@ -76,10 +89,12 @@ async def upload_issue(
             print(f"✓ User selected: {issue_type}")
         else:
             # User selected "other" - try AI but keep as "other" if fails
-            detected_issue_type, detected_conf, detected_objects = detector.detect_issue_type(file_path)
-            if detected_conf > 0.7:
-                # AI found something with HIGH confidence - use detected type for BOTH storage and priority
-                issue_type = detected_issue_type
+            detector = get_detector()
+            if detector:
+                detected_issue_type, detected_conf, detected_objects = detector.detect_issue_type(file_path)
+                if detected_conf > 0.7:
+                    # AI found something with HIGH confidence - use detected type for BOTH storage and priority
+                    issue_type = detected_issue_type
                 priority_type_for_scoring = detected_issue_type
                 confidence = detected_conf
                 print(f"✓ AI detected with high confidence: {issue_type} ({confidence:.2%})")

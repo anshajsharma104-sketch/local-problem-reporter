@@ -95,10 +95,16 @@ async def health_check():
 @app.get("/api/system/info")
 async def system_info():
     """Get system information"""
-    detector = AIIssueDetector()
+    try:
+        from .services import AIIssueDetector
+        detector = AIIssueDetector()
+        ai_info = detector.get_model_info()
+    except Exception as e:
+        ai_info = {"error": str(e), "status": "unavailable"}
+    
     return {
         "api_version": "1.0.0",
-        "ai_model": detector.get_model_info(),
+        "ai_model": ai_info,
         "issue_categories": [
             "road_damage",
             "garbage",
