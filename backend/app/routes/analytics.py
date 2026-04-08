@@ -77,7 +77,7 @@ async def get_dashboard(db: Session = Depends(get_db)):
         "pending_issues": pending,
         "issue_types": issues_by_type,
         "priority_distribution": issues_by_priority,
-        "status_distribution": issues_by_status,
+        "issues_by_status": issues_by_status,
         "recent_issues": recent_issues,
         "top_locations": top_locations
     }
